@@ -35,14 +35,6 @@ exports.handle = (client) => {
         }
     })
 
-
-
-
-
-
-
-
-
     const handleWelocomeEvent = function(eventType, payload) {
         client.resetConversationState();
         client.updateConversationState({
@@ -63,7 +55,7 @@ exports.handle = (client) => {
 
         },
 
-        prompt() {},
+        prompt() {}
     });
 
 
@@ -84,13 +76,13 @@ exports.handle = (client) => {
         },
 
         prompt() {
-            
+
             client.updateConversationState({
                 state: 1
             });
             client.addResponse('ask_userdetail/name')
             client.done()
-        },
+        }
     });
 
     const collectHeight = client.createStep({
@@ -101,10 +93,10 @@ exports.handle = (client) => {
         extractInfo() {
             const userHeight = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number');
             const state = client.getConversationState().state;
-            if(state ){
-            console.log( 'userHeight:'+JSON.stringify(userHeight)+' state:'+state);
+            if (state) {
+                console.log('userHeight:' + JSON.stringify(userHeight) + ' state:' + state);
             }
-            if (userHeight &&  state === 2 ) {
+            if (userHeight && state === 2) {
                 client.updateConversationState({
                     userHeight: userHeight
                 });
@@ -112,12 +104,12 @@ exports.handle = (client) => {
         },
 
         prompt() {
-             client.updateConversationState({
+            client.updateConversationState({
                 state: 2
             });
             client.addResponse('ask_userdetail/height');
             client.done();
-        },
+        }
     });
 
 
@@ -128,11 +120,11 @@ exports.handle = (client) => {
         },
 
         extractInfo() {
-         
-           const userWeight = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number');
-           const state = client.getConversationState().state;
-            if(state ){
-            console.log( 'weight:'+userWeight+' state:'+state);
+
+            const userWeight = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number');
+            const state = client.getConversationState().state;
+            if (state) {
+                console.log('weight:' + userWeight + ' state:' + state);
             }
             if (userWeight && state == 3) {
                 client.updateConversationState({
@@ -142,17 +134,17 @@ exports.handle = (client) => {
         },
 
         prompt() {
-          client.updateConversationState({
+            client.updateConversationState({
                 state: 3
             });
             client.addResponse('ask_userdetail/weight');
             client.done();
-        },
+        }
     });
 
     const needSomeInfo = client.createStep({
         satisfied() {
-            return Boolean(client.getConversationState().isNeedSomeInfo)
+            return Boolean(client.getConversationState().isNeedSomeInfo);
         },
 
         extractInfo() {
@@ -160,18 +152,16 @@ exports.handle = (client) => {
         },
 
         prompt() {
-          client.updateConversationState({
-                isNeedSomeInfo: 3
+            client.updateConversationState({
+                isNeedSomeInfo: 3,
+                state:2
             });
-          client.addResponse('needsomeinfo/user');
+            client.addResponse('needsomeinfo/user', {name:client.getConversationState().userName.value});
+            client.addResponse('ask_userdetail/height');
             client.done();
-          
-        },
+
+        }
     });
-
-
-
-
 
     client.runFlow({
         eventHandlers: {
@@ -183,7 +173,7 @@ exports.handle = (client) => {
         },
         streams: {
             main: 'promptMessage',
-            promptMessage: [isPromtWelocome, collectUserName, needSomeInfo,collectHeight, collectWeight],
+            promptMessage: [isPromtWelocome, collectUserName, needSomeInfo, collectHeight, collectWeight],
             end: [],
         },
     })
