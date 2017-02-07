@@ -1,40 +1,40 @@
 'use strict'
 
 exports.handle = (client) => {
-  // Create steps
-  const sayHello = client.createStep({
-    satisfied() {
-      return Boolean(client.getConversationState().helloSent)
-    },
+    // Create steps
+    const sayHello = client.createStep({
+        satisfied() {
+            return Boolean(client.getConversationState().helloSent)
+        },
 
-    prompt() {
-      client.addResponse('welcome')
-      client.addResponse('provide/documentation', {
-        documentation_link: 'http://docs.init.ai',
-      })
-      client.addResponse('provide/instructions')
+        prompt() {
+            client.addResponse('welcome')
+            client.addResponse('provide/documentation', {
+                documentation_link: 'http://docs.init.ai',
+            })
+            client.addResponse('provide/instructions')
 
-      client.updateConversationState({
-        helloSent: true
-      })
+            client.updateConversationState({
+                helloSent: true
+            })
 
-      client.done()
-    }
-  })
+            client.done()
+        }
+    })
 
-  const untrained = client.createStep({
-    satisfied() {
-      return false
-    },
+    const untrained = client.createStep({
+        satisfied() {
+            return false
+        },
 
-    prompt() {
-      client.addResponse('apology/untrained')
-      client.done()
-    }
-  })
+        prompt() {
+            client.addResponse('apology/untrained')
+            client.done()
+        }
+    })
 
 
-  const collectHeight = client.createStep({
+    const collectHeight = client.createStep({
         satisfied() {
             return Boolean(client.getConversationState().userHeight);
         },
@@ -49,27 +49,27 @@ exports.handle = (client) => {
             }
         },
 
-        prompt() {  
-            
-            client.addResponse('ask_userDetail/height');
+        prompt() {
+
+            client.addResponse('ask_userdetail/height');
             client.done();
         },
     });
 
 
 
-  const handleWelocomeEvent = function(eventType, payload) {
+    const handleWelocomeEvent = function(eventType, payload) {
         client.resetConversationState();
         client.updateConversationState({
             isWelecomePromt: true
         });
-      //  client.addResponse('welcome/siya');
-        client.addResponse('ask_userDetail/name');
+        //  client.addResponse('welcome/siya');
+        client.addResponse('ask_userdetail/name');
         client.done();
 
     };
 
-      const isPromtWelocome = client.createStep({
+    const isPromtWelocome = client.createStep({
         satisfied() {
             return Boolean(client.getConversationState().isWelecomePromt)
         },
@@ -78,8 +78,7 @@ exports.handle = (client) => {
 
         },
 
-        prompt() {
-        },
+        prompt() {},
     });
 
 
@@ -99,25 +98,25 @@ exports.handle = (client) => {
         },
 
         prompt() {
-            client.addResponse('ask_userDetail/name')
+            client.addResponse('ask_userdetail/name')
             client.done()
         },
     });
 
-  client.runFlow({
-    eventHandlers: {
+    client.runFlow({
+        eventHandlers: {
             'welcome:siya': handleWelocomeEvent
-          },
-    classifications: {
-     'welcome/siya':'promptMessage'
-    },
-    autoResponses: {
-      // configure responses to be automatically sent as predicted by the machine learning model
-    },
-    streams: {
-      main: 'promptMessage',
-      promptMessage: [isPromtWelocome,collectUserName,collectHeight],
-      end: [untrained],
-    },
-  })
+        },
+        classifications: {
+            'welcome/siya': 'promptMessage'
+        },
+        autoResponses: {
+            // configure responses to be automatically sent as predicted by the machine learning model
+        },
+        streams: {
+            main: 'promptMessage',
+            promptMessage: [isPromtWelocome, collectUserName, collectHeight],
+            end: [untrained],
+        },
+    })
 }
