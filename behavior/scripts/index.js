@@ -33,16 +33,90 @@ exports.handle = (client) => {
     }
   })
 
+
+  const collectHeight = client.createStep({
+        satisfied() {
+            return Boolean(client.getConversationState().userHeight);
+        },
+
+        extractInfo() {
+            const userHeight = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number');
+            console.log('swapnil userHeight:' + userHeight);
+            if (userHeight) {
+                client.updateConversationState({
+                    userHeight: userHeight
+                })
+            }
+        },
+
+        prompt() {  
+            
+            client.addResponse('ask_userDetail/height');
+            client.done();
+        },
+    });
+
+
+
+  const handleWelocomeEvent = function(eventType, payload) {
+        client.resetConversationState();
+        client.updateConversationState({
+            isWelecomePromt: true
+        });
+      //  client.addResponse('welcome/siya');
+        client.addResponse('ask_userDetail/name');
+        client.done();
+
+    };
+
+      const isPromtWelocome = client.createStep({
+        satisfied() {
+            return Boolean(client.getConversationState().isWelecomePromt)
+        },
+
+        extractInfo() {
+
+        },
+
+        prompt() {
+        },
+    });
+
+
+    const collectUserName = client.createStep({
+        satisfied() {
+            console.log(client.getConversationState().userName);
+            return Boolean(client.getConversationState().userName)
+        },
+
+        extractInfo() {
+            const name = client.getFirstEntityWithRole(client.getMessagePart(), 'name')
+            if (name) {
+                client.updateConversationState({
+                    userName: name
+                })
+            }
+        },
+
+        prompt() {
+            client.addResponse('ask_userDetail/name')
+            client.done()
+        },
+    });
+
   client.runFlow({
+    eventHandlers: {
+            'welcome:siya': handleWelocomeEvent
+          },
     classifications: {
-      // map inbound message classifications to names of streams
+     'welcome/siya':'promptMessage'
     },
     autoResponses: {
       // configure responses to be automatically sent as predicted by the machine learning model
     },
     streams: {
-      main: 'onboarding',
-      onboarding: [sayHello],
+      main: 'promptMessage',
+      promptMessage: [isPromtWelocome,collectUserName,collectHeight],
       end: [untrained],
     },
   })
