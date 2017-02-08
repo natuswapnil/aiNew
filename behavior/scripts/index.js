@@ -76,6 +76,7 @@ exports.handle = (client) => {
         },
 
         extractInfo() {
+            console.log(JSON.stringify(client.getMessagePart()));
             const name = client.getFirstEntityWithRole(client.getMessagePart(), 'name')
             if (name) {
                 client.updateConversationState({
