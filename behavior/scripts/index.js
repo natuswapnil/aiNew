@@ -1,5 +1,7 @@
 'use strict'
 
+const getApiCall = require('./lib/getApiCall')
+
 exports.handle = (client) => {
 
 
@@ -55,7 +57,15 @@ exports.handle = (client) => {
 
         },
 
-        prompt() {}
+        prompt() {
+            client.resetConversationState();
+            client.updateConversationState({
+                isWelecomePromt: true
+            });
+            client.addResponse('welcome/siya');
+            client.addResponse('ask_userdetail/name');
+            client.done();
+        }
     });
 
 
@@ -154,11 +164,40 @@ exports.handle = (client) => {
         prompt() {
             client.updateConversationState({
                 isNeedSomeInfo: 3,
-                state:2
+                state: 2
             });
-            client.addResponse('needsomeinfo/user', {name:client.getConversationState().userName.value});
+            client.addResponse('needsomeinfo/user', { name: client.getConversationState().userName.value });
             client.addResponse('ask_userdetail/height');
             client.done();
+
+        }
+    });
+
+    const getBmi = client.createStep({
+        satisfied() {
+            return Boolean(client.getConversationState().isBmiCalculated);
+        },
+        prompt(callback) {
+            client.updateConversationState({
+                isBmiCalculated: true,
+                state: 4
+            });
+            
+
+            getApiCall(client.getConversationState().userName.value, resultBody => {
+                // if (!resultBody || resultBody.cod !== 200) {
+                //   console.log('Error getting weather.')
+                //   callback()
+                //   return
+                // }
+
+                console.log('sending real data:' + JSON.stringify(resultBody))
+                client.addResponse('needsomeinfo/user', { name: client.getConversationState().userName.value });
+                client.done()
+
+                callback()
+            })
+
 
         }
     });
@@ -173,7 +212,7 @@ exports.handle = (client) => {
         },
         streams: {
             main: 'promptMessage',
-            promptMessage: [isPromtWelocome, collectUserName, needSomeInfo, collectHeight, collectWeight],
+            promptMessage: [isPromtWelocome, collectUserName, needSomeInfo, collectHeight, collectWeight, getBmi],
             end: [],
         },
     })
