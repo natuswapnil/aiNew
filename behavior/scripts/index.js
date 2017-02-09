@@ -40,12 +40,28 @@ exports.handle = (client) => {
     })
 
     const handleWelocomeEvent = function(eventType, payload) {
+        var eventData;
+        payload = payload || {};
         client.resetConversationState();
         client.updateConversationState({
             isWelecomePromt: true
         });
         client.addResponse('promt/welcome_siya');
-        client.addResponse('ask_userdetail/name');
+        client.addResponse('promt/notify_change');
+
+        eventData = 'Name - ' + (payload.name || '') +
+            ' Gender - ' + (payload.gender || '') +
+            ' Age - ' + (payload.age || '') +
+            ' Contact - ' + (payload.contact || '') + '\n';
+
+        client.updateConversationState({
+            userName: payload.name,
+            gender: payload.gender,
+            age: payload.age,
+            contact: payload.contact,
+        });
+
+        client.addTextResponse(eventData);
         client.done();
 
     };
@@ -78,14 +94,14 @@ exports.handle = (client) => {
         },
 
         extractInfo() {
-            var data, name, index,list;
+            var data, name, index, list;
             var messagePart = client.getMessagePart();
             console.log(JSON.stringify(messagePart));
             const state = client.getConversationState().state;
-            if(client.getConversationState().userName){
+            if (client.getConversationState().userName) {
                 return;
             }
-           
+
             if (messagePart.content && messagePart.content.toLowerCase().indexOf('my name is ') !== -1 && messagePart.classification.sub_type === 'name') {
                 index = messagePart.content.toLowerCase().indexOf('my name is ');
                 name = messagePart.content.substr(index + 11);
@@ -94,14 +110,14 @@ exports.handle = (client) => {
                 name = messagePart.content.substr(index + 5);
             } else {
                 data = messagePart.content.split(' ');
-                list = client.getEntities(messagePart, 'name') || {generic:[]};
+                list = client.getEntities(messagePart, 'name') || { generic: [] };
                 name = '';
-                list.generic.forEach(function(data){
-                  if(data && data.value){
-                    name = name + ' ' + data.value;
-                  }
+                list.generic.forEach(function(data) {
+                    if (data && data.value) {
+                        name = name + ' ' + data.value;
+                    }
                 });
-                console.log('LIST=========='+JSON.stringify(name));
+                console.log('LIST==========' + JSON.stringify(name));
                 if (!name && data.length <= 3 && messagePart.classification.sub_type.value === 'name') {
                     name = messagePart.content;
                 }
@@ -204,6 +220,28 @@ exports.handle = (client) => {
         }
     });
 
+
+    const correctInfo = client.createStep({
+        satisfied() {
+            return Boolean(client.getConversationState().isCorrectInfo);
+        },
+
+        extractInfo() {
+
+        },
+
+        prompt() {
+            client.updateConversationState({
+                isCorrectInfo: true
+            });
+            client.addResponse('ask_userdetail/height');
+            client.done();
+
+        }
+    });
+
+    
+
     const getBmi = client.createStep({
         satisfied() {
             return Boolean(client.getConversationState().isBmiCalculated);
@@ -243,7 +281,7 @@ exports.handle = (client) => {
         },
         streams: {
             main: 'promptMessage',
-            promptMessage: [isPromtWelocome, collectUserName, needSomeInfo, collectHeight, collectWeight, getBmi],
+            promptMessage: [isPromtWelocome,correctInfo ,collectUserName, needSomeInfo, collectHeight, collectWeight, getBmi],
             end: [],
         },
     })
