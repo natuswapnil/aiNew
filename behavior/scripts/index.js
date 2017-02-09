@@ -6,7 +6,16 @@ const postApiCall = require('./lib/postApiCall');
 
 exports.handle = (client) => {
 
+    function isValidNumber(number) {
+        number = typeof number === 'string' ? number.trim() : '';
+        return Boolean(number.match(/^\d+(\.\d{1,2})?$/g));
+    }
 
+
+    function isContactNo(contact) {
+        contact = typeof contact === 'string' ? contact : '';
+        return Boolean(contact.match(/^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/g));
+    }
     // Create steps
     const sayHello = client.createStep({
         satisfied() {
@@ -59,6 +68,12 @@ exports.handle = (client) => {
             gender: payload.gender,
             age: payload.age,
             contact: payload.contact,
+            patientId: payload.patientId,
+            config: {
+                token: payload.token,
+                baseUrl: payload.baseUrl,
+                clientType: payload.clientType
+            }
         });
 
         client.addTextResponse(eventData);
@@ -146,6 +161,19 @@ exports.handle = (client) => {
         }
     });
 
+
+    function saveVital(vitalId,value,callback) {
+        postApiCall({
+            vitalId: vitalId,
+            vitalValue: value,
+            vitalType: 'FLT',
+            patientId: client.getConversationState().patientId
+
+        }, client.getConversationState().config, callback);
+
+    }
+
+
     const collectHeight = client.createStep({
         satisfied() {
             return Boolean(client.getConversationState().userHeight);
@@ -157,9 +185,17 @@ exports.handle = (client) => {
             if (state !== 2) {
                 return;
             }
-            if (userHeight && state === 2) {
+            if (userHeight && state === 2 && isValidNumber(userHeight.value)) {
+
+
+                if (!Boolean(client.getConversationState().userHeight)) {
+                    saveVital(1,userHeight.value);
+                }
+
+
+
                 client.updateConversationState({
-                    userHeight: userHeight
+                    userHeight: userHeight.value
                 });
             }
         },
@@ -173,8 +209,7 @@ exports.handle = (client) => {
         }
     });
 
-
-
+     
     const collectWeight = client.createStep({
         satisfied() {
             return Boolean(client.getConversationState().userWeight);
@@ -187,10 +222,16 @@ exports.handle = (client) => {
             if (state !== 3) {
                 return;
             }
-            if (userWeight && state == 3) {
+            if (userWeight && state == 3 && isValidNumber(userWeight.value)) {
+                if(!Boolean(client.getConversationState().userWeight)){
+                  saveVital(2,userWeight.value); 
+                }
+               
                 client.updateConversationState({
-                    userWeight: userWeight
+                    userWeight: userWeight.value
                 });
+
+                
             }
         },
 
@@ -235,17 +276,19 @@ exports.handle = (client) => {
         },
 
         prompt() {
-            var isPromtChangeDetect = false,
+            var showDefaultMessage = true,
+                isCorrectInfo = true,
+                isPromtChangeDetect = false,
                 messagePart = client.getMessagePart();
             var userDetailType, contact, age;
 
-            if (messagePart.classification.base_type.value !== 'decline') {
+            if (messagePart.classification.base_type.value !== 'decline' && messagePart.classification.base_type.value !== 'confirm') {
                 userDetailType = client.getFirstEntityWithRole(client.getMessagePart(), 'type');
                 if (userDetailType && userDetailType.value.toLowerCase().trim() === 'age') {
 
                     age = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number');
                     age = age ? age.value : undefined;
-                    if (age) {
+                    if (age && isValidNumber(age)) {
                         isPromtChangeDetect = true;
                         client.updateConversationState({
                             age: age
@@ -257,7 +300,7 @@ exports.handle = (client) => {
                 if (contact) {
 
                     contact = contact.value;
-                    if (contact) {
+                    if (isContactNo(contact)) {
                         isPromtChangeDetect = true;
                         client.updateConversationState({
                             contact: contact
@@ -272,23 +315,33 @@ exports.handle = (client) => {
             }
 
 
+            if (!isPromtChangeDetect && (messagePart.classification.base_type.value === 'provide_userdetails' || messagePart.classification.base_type.value === 'provide_userdetail')) {
+                isCorrectInfo = false;
+                if (showDefaultMessage) {
+                    client.addTextResponse('sorry for not understanding you');
+                }
+            }
+
             client.updateConversationState({
-                isCorrectInfo: true
+                isCorrectInfo: isCorrectInfo
             });
             if (isPromtChangeDetect) {
                 client.addResponse('promt/change_detect');
             }
 
-            if (!Boolean(client.getConversationState().userName)) {
-                client.updateConversationState({
-                    state: 1
-                });
-                client.addResponse('ask_userdetail/name')
-            } else {
-                client.updateConversationState({
-                    state: 2
-                });
-                client.addResponse('ask_userdetail/height')
+
+            if (isCorrectInfo) {
+                if (!Boolean(client.getConversationState().userName)) {
+                    client.updateConversationState({
+                        state: 1
+                    });
+                    client.addResponse('ask_userdetail/name')
+                } else {
+                    client.updateConversationState({
+                        state: 2
+                    });
+                    client.addResponse('ask_userdetail/height')
+                }
             }
             client.done();
 
@@ -308,15 +361,22 @@ exports.handle = (client) => {
             });
 
 
-            getApiCall(client.getConversationState().userName, resultBody => {
-                // if (!resultBody || resultBody.cod !== 200) {
-                //   console.log('Error getting weather.')
-                //   callback()
-                //   return
-                // }
-
-                console.log('sending real data:' + JSON.stringify(resultBody))
-                client.addTextResponse(JSON.stringify(resultBody));
+            getApiCall({ patientId: client.getConversationState().patientId }, client.getConversationState().config, resultBody => {
+                
+                  var bmi, weightInPound = (2.20462 * parseFloat(client.getConversationState().userWeight)) * 0.45;                 
+                  var category, heightInch = 0.393701 * parseFloat(client.getConversationState().userHeight) * 0.025; 
+                  heightInch =heightInch * heightInch;
+                  bmi = weightInPound/heightInch;
+                  if(bmi  <= 18.5){
+                     category = 'Underweight';
+                  } else if(bmi  > 18.5 && bmi <= 24.9){
+                     category = 'Normal weigh';
+                  } else if(bmi  >= 25 && bmi <= 29.9){
+                     category = 'Overweight';
+                  } else if(bmi  >= 30){
+                     category = 'Obesity';
+                  }
+                client.addTextResponse('BMI: ' + JSON.stringify(bmi) + '  BMI Categories: ' + category);
                 client.done()
 
                 callback()
@@ -331,9 +391,7 @@ exports.handle = (client) => {
             'welcome:siya': handleWelocomeEvent
         },
 
-        autoResponses: {
-            // configure responses to be automatically sent as predicted by the machine learning model
-        },
+        autoResponses: {},
         streams: {
             main: 'promptMessage',
             promptMessage: [isPromtWelocome, correctInfo, collectUserName, collectHeight, collectWeight, getBmi],
