@@ -86,6 +86,37 @@ exports.handle = (client) => {
         }
     });
 
+    function updateName(messagePart) {
+        var data, name, index, list;
+        if (messagePart.content && messagePart.content.toLowerCase().indexOf('my name is ') !== -1 && messagePart.classification.sub_type.value === 'name') {
+            index = messagePart.content.toLowerCase().indexOf('my name is ');
+            name = messagePart.content.substr(index + 11);
+        } else if (messagePart.content && messagePart.content.toLowerCase().indexOf('i am ') !== -1 && messagePart.classification.sub_type.value === 'name') {
+            index = messagePart.content.toLowerCase().indexOf('i am ');
+            name = messagePart.content.substr(index + 5);
+        } else {
+            data = messagePart.content.split(' ');
+            list = client.getEntities(messagePart, 'name') || { generic: [] };
+            name = '';
+            list.generic.forEach(function(data) {
+                if (data && data.value) {
+                    name = name + ' ' + data.value;
+                }
+            });
+            console.log('LIST==========' + JSON.stringify(name));
+            if (!name && data.length <= 3 && messagePart.classification.sub_type.value === 'name') {
+                name = messagePart.content;
+            }
+
+
+        }
+        if (name) {
+            client.updateConversationState({
+                userName: name
+            });
+
+        }
+    }
 
     const collectUserName = client.createStep({
         satisfied() {
@@ -94,42 +125,15 @@ exports.handle = (client) => {
         },
 
         extractInfo() {
-            var data, name, index, list;
+
             var messagePart = client.getMessagePart();
             console.log(JSON.stringify(messagePart));
             const state = client.getConversationState().state;
-            if (client.getConversationState().userName) {
+            if (state !== 1 || client.getConversationState().userName) {
                 return;
             }
+            updateName(messagePart);
 
-            if (messagePart.content && messagePart.content.toLowerCase().indexOf('my name is ') !== -1 && messagePart.classification.sub_type === 'name') {
-                index = messagePart.content.toLowerCase().indexOf('my name is ');
-                name = messagePart.content.substr(index + 11);
-            } else if (messagePart.content && messagePart.content.toLowerCase().indexOf('i am ') !== -1 && messagePart.classification.sub_type === 'name') {
-                index = messagePart.content.toLowerCase().indexOf('i am ');
-                name = messagePart.content.substr(index + 5);
-            } else {
-                data = messagePart.content.split(' ');
-                list = client.getEntities(messagePart, 'name') || { generic: [] };
-                name = '';
-                list.generic.forEach(function(data) {
-                    if (data && data.value) {
-                        name = name + ' ' + data.value;
-                    }
-                });
-                console.log('LIST==========' + JSON.stringify(name));
-                if (!name && data.length <= 3 && messagePart.classification.sub_type.value === 'name') {
-                    name = messagePart.content;
-                }
-
-
-            }
-            if (name) {
-                client.updateConversationState({
-                    userName: name
-                });
-
-            }
         },
 
         prompt() {
@@ -236,14 +240,34 @@ exports.handle = (client) => {
             var userDetailType, contact, age;
 
             if (messagePart.classification.base_type.value !== 'decline') {
+                userDetailType = client.getFirstEntityWithRole(client.getMessagePart(), 'type');
+                if (userDetailType && userDetailType.value.toLowerCase().trim() === 'age') {
 
-                if (messagePart.classification.sub_type.value === 'number') {
-                    userDetailType = client.getFirstEntityWithRole(client.getMessagePart(), 'type');
-                    if (userDetailType && userDetailType.value.toLowerCase().trim() === 'age') {
-                        age = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number').value;
+                    age = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number');
+                    age = age ? age.value : undefined;
+                    if (age) {
+                        isPromtChangeDetect = true;
+                        client.updateConversationState({
+                            age: age
+                        });
                     }
-                } else if (messagePart.classification.sub_type.value === 'contact') {
-                    contact = client.getFirstEntityWithRole(client.getMessagePart(), 'phone-number/contact');
+
+                }
+                contact = client.getFirstEntityWithRole(client.getMessagePart(), 'phone-number/contact');
+                if (contact) {
+
+                    contact = contact.value;
+                    if (contact) {
+                        isPromtChangeDetect = true;
+                        client.updateConversationState({
+                            contact: contact
+                        });
+                    }
+                }
+
+                if (messagePart.classification.sub_type.value === 'name' || (client.getFirstEntityWithRole(client.getMessagePart(), 'name') && messagePart.classification.base_type.value === 'provide_userdetails')) {
+                    updateName(messagePart);
+                    isPromtChangeDetect = true;
                 }
             }
 
