@@ -1,10 +1,10 @@
 ---
 title: ask_weight2
-timestamp: 2017-02-07T11:44:46.167840432+05:30
+timestamp: 2017-02-09T10:31:34.559782975+05:30
 ---
 
-< And how much do you weight
+< And how much do you weigh?
 * ask_userdetail/weight
 
-[47.544](number/number) [kg](unit)
+[47.543](number/number) [kg](unit)
 * provide_userdetail/number

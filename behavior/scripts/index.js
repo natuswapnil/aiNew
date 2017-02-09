@@ -1,6 +1,8 @@
 'use strict'
 
-const getApiCall = require('./lib/getApiCall')
+const getApiCall = require('./lib/getApiCall');
+const postApiCall = require('./lib/postApiCall');
+
 
 exports.handle = (client) => {
 
@@ -42,7 +44,7 @@ exports.handle = (client) => {
         client.updateConversationState({
             isWelecomePromt: true
         });
-        client.addResponse('welcome/siya');
+        client.addResponse('promt/welcome_siya');
         client.addResponse('ask_userdetail/name');
         client.done();
 
@@ -76,8 +78,36 @@ exports.handle = (client) => {
         },
 
         extractInfo() {
-            console.log(JSON.stringify(client.getMessagePart()));
-            const name = client.getFirstEntityWithRole(client.getMessagePart(), 'name')
+            var data, name, index,list;
+            var messagePart = client.getMessagePart();
+            console.log(JSON.stringify(messagePart));
+            const state = client.getConversationState().state;
+            if(client.getConversationState().userName){
+                return;
+            }
+           
+            if (messagePart.content && messagePart.content.toLowerCase().indexOf('my name is ') !== -1 && messagePart.classification.sub_type === 'name') {
+                index = messagePart.content.toLowerCase().indexOf('my name is ');
+                name = messagePart.content.substr(index + 11);
+            } else if (messagePart.content && messagePart.content.toLowerCase().indexOf('i am ') !== -1 && messagePart.classification.sub_type === 'name') {
+                index = messagePart.content.toLowerCase().indexOf('i am ');
+                name = messagePart.content.substr(index + 5);
+            } else {
+                data = messagePart.content.split(' ');
+                list = client.getEntities(messagePart, 'name') || {generic:[]};
+                name = '';
+                list.generic.forEach(function(data){
+                  if(data && data.value){
+                    name = name + ' ' + data.value;
+                  }
+                });
+                console.log('LIST=========='+JSON.stringify(name));
+                if (!name && data.length <= 3 && messagePart.classification.sub_type.value === 'name') {
+                    name = messagePart.content;
+                }
+
+
+            }
             if (name) {
                 client.updateConversationState({
                     userName: name
@@ -104,8 +134,8 @@ exports.handle = (client) => {
         extractInfo() {
             const userHeight = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number');
             const state = client.getConversationState().state;
-            if (state) {
-                console.log('userHeight:' + JSON.stringify(userHeight) + ' state:' + state);
+            if (state !== 2) {
+                return;
             }
             if (userHeight && state === 2) {
                 client.updateConversationState({
@@ -134,8 +164,8 @@ exports.handle = (client) => {
 
             const userWeight = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number');
             const state = client.getConversationState().state;
-            if (state) {
-                console.log('weight:' + userWeight + ' state:' + state);
+            if (state !== 3) {
+                return;
             }
             if (userWeight && state == 3) {
                 client.updateConversationState({
@@ -167,7 +197,7 @@ exports.handle = (client) => {
                 isNeedSomeInfo: 3,
                 state: 2
             });
-            client.addResponse('needsomeinfo/user', { name: client.getConversationState().userName.value });
+            client.addResponse('needsomeinfo/user', { name: client.getConversationState().userName });
             client.addResponse('ask_userdetail/height');
             client.done();
 
@@ -183,9 +213,9 @@ exports.handle = (client) => {
                 isBmiCalculated: true,
                 state: 4
             });
-            
 
-            getApiCall(client.getConversationState().userName.value, resultBody => {
+
+            getApiCall(client.getConversationState().userName, resultBody => {
                 // if (!resultBody || resultBody.cod !== 200) {
                 //   console.log('Error getting weather.')
                 //   callback()
@@ -193,7 +223,7 @@ exports.handle = (client) => {
                 // }
 
                 console.log('sending real data:' + JSON.stringify(resultBody))
-                client.addResponse('needsomeinfo/user', { name: client.getConversationState().userName.value });
+                client.addTextResponse(JSON.stringify(resultBody));
                 client.done()
 
                 callback()
