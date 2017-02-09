@@ -234,7 +234,7 @@ exports.handle = (client) => {
             client.updateConversationState({
                 isCorrectInfo: true
             });
-            client.addResponse('ask_userdetail/height');
+            client.addResponse('promt/change_detect');
             client.done();
 
         }
