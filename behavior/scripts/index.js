@@ -231,16 +231,47 @@ exports.handle = (client) => {
         },
 
         prompt() {
+            var isPromtChangeDetect = false,
+                messagePart = client.getMessagePart();
+            var userDetailType, contact, age;
+
+            if (messagePart.classification.base_type.value !== 'decline') {
+
+                if (messagePart.classification.sub_type.value === 'number') {
+                    userDetailType = client.getFirstEntityWithRole(client.getMessagePart(), 'type');
+                    if (userDetailType && userDetailType.value.toLowerCase().trim() === 'age') {
+                        age = client.getFirstEntityWithRole(client.getMessagePart(), 'number/number').value;
+                    }
+                } else if (messagePart.classification.sub_type.value === 'contact') {
+                    contact = client.getFirstEntityWithRole(client.getMessagePart(), 'phone-number/contact');
+                }
+            }
+
+
             client.updateConversationState({
                 isCorrectInfo: true
             });
-            client.addResponse('promt/change_detect');
+            if (isPromtChangeDetect) {
+                client.addResponse('promt/change_detect');
+            }
+
+            if (!Boolean(client.getConversationState().userName)) {
+                client.updateConversationState({
+                    state: 1
+                });
+                client.addResponse('ask_userdetail/name')
+            } else {
+                client.updateConversationState({
+                    state: 2
+                });
+                client.addResponse('ask_userdetail/height')
+            }
             client.done();
 
         }
     });
 
-    
+
 
     const getBmi = client.createStep({
         satisfied() {
@@ -281,7 +312,7 @@ exports.handle = (client) => {
         },
         streams: {
             main: 'promptMessage',
-            promptMessage: [isPromtWelocome,correctInfo ,collectUserName, needSomeInfo, collectHeight, collectWeight, getBmi],
+            promptMessage: [isPromtWelocome, correctInfo, collectUserName, collectHeight, collectWeight, getBmi],
             end: [],
         },
     })
