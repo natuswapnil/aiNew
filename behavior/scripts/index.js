@@ -76,9 +76,9 @@ exports.handle = (client) => {
             }
         });
 
-        client.addTextResponse(eventData);
-       // client.addResponse('promt/notify_change');
-        client.addResponseWithReplies('ask_userdetail/height', {foo: 'bar'}, [client.makeReplyButton('yes', null, 'promptMessage', {})]);
+       client.addTextResponse(eventData);
+        client.addResponse('promt/notify_change');
+       // client.addResponseWithReplies('ask_userdetail/height', {foo: 'bar'}, [client.makeReplyButton('yes', null, 'promptMessage', {})]);
         client.done();
 
     };
