@@ -8,7 +8,7 @@ exports.handle = (client) => {
 
     function isValidNumber(number) {
         number = typeof number === 'string' ? number.trim() : '';
-        return Boolean(number.match(/^\d+(\.\d{1,2})?$/g));
+        return Boolean(number.match(/^\d+(\.\d{1,9})?$/g));
     }
 
 
@@ -56,7 +56,7 @@ exports.handle = (client) => {
             isWelecomePromt: true
         });
         client.addResponse('promt/welcome_siya');
-        client.addResponse('promt/notify_change');
+        
 
         eventData = 'Name - ' + (payload.name || '') +
             ' Gender - ' + (payload.gender || '') +
@@ -77,6 +77,8 @@ exports.handle = (client) => {
         });
 
         client.addTextResponse(eventData);
+       // client.addResponse('promt/notify_change');
+        client.addResponseWithReplies('ask_userdetail/height', {foo: 'bar'}, [client.makeReplyButton('yes', null, 'promptMessage', {})]);
         client.done();
 
     };
