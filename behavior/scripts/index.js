@@ -56,7 +56,7 @@ exports.handle = (client) => {
             isWelecomePromt: true
         });
         client.addResponse('promt/welcome_siya');
-        
+
 
         eventData = 'Name - ' + (payload.name || '') +
             ' Gender - ' + (payload.gender || '') +
@@ -76,50 +76,15 @@ exports.handle = (client) => {
             }
         });
 
-       client.addTextResponse(eventData);
+        client.addTextResponse(eventData);
         client.addResponse('promt/notify_change');
-      // client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [client.makeReplyButton('no', null, 'end', {}),client.makeReplyButton('no1', null, 'end', {}),client.makeReplyButton('yes', null, 'promptMessage', {})]);
-        
-      client.addCarouselListResponse({
-  items: [
-    {
-      media_url: 'https://c2.staticflickr.com/4/3512/5763418254_e2f42b2224_b.jpg',
-      media_type: 'image/jpeg',
-      description: 'Yosemite is a really nice place.',
-      title: 'Yosemite',
-      actions: [
-        {
-          type: 'postback',
-          text: 'Visit',
-          payload: {
-            data: {
-              action: 'visit',
-              park: 'yosemite'
-            },
-            version: '1',
-            stream: 'end',
-          },
-        },
-      ],
-    },
-    {
-      media_url: 'https://upload.wikimedia.org/wikipedia/commons/3/36/Morning_Glory_Pool.jpg',
-      media_type: 'image/jpeg',
-      description: 'Yellowstone showcases geology in its most raw form.',
-      title: 'Yellowstone',
-      actions: [
-        {
-          type: 'link',
-          text: 'View info',
-          uri: 'https://en.wikipedia.org/wiki/Yellowstone_National_Park',
-        },
-      ],
-    },
-  ],
-})
-
-
-
+        var button1 = JSON.stringify(client.makeReplyButton('yes', null, 'main', {}));
+        button1.type = 'checkbox';
+        var button2 = JSON.stringify(client.makeReplyButton('y', null, 'main', {}));
+        button2.type = 'checkbox';
+        var button3 = JSON.stringify(client.makeReplyButton('no', null, 'main', {}));
+        button3.type = 'checkbox';
+        client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [button1,button2,button3]);
         client.done();
 
     };
@@ -205,7 +170,7 @@ exports.handle = (client) => {
     });
 
 
-    function saveVital(vitalId,value,callback) {
+    function saveVital(vitalId, value, callback) {
         postApiCall({
             vitalId: vitalId,
             vitalValue: value,
@@ -232,7 +197,7 @@ exports.handle = (client) => {
 
 
                 if (!Boolean(client.getConversationState().userHeight)) {
-                    saveVital(1,userHeight.value);
+                    saveVital(1, userHeight.value);
                 }
 
 
@@ -248,11 +213,12 @@ exports.handle = (client) => {
                 state: 2
             });
             client.addResponse('ask_userdetail/height');
+
             client.done();
         }
     });
 
-     
+
     const collectWeight = client.createStep({
         satisfied() {
             return Boolean(client.getConversationState().userWeight);
@@ -266,15 +232,15 @@ exports.handle = (client) => {
                 return;
             }
             if (userWeight && state == 3 && isValidNumber(userWeight.value)) {
-                if(!Boolean(client.getConversationState().userWeight)){
-                  saveVital(2,userWeight.value); 
+                if (!Boolean(client.getConversationState().userWeight)) {
+                    saveVital(2, userWeight.value);
                 }
-               
+
                 client.updateConversationState({
                     userWeight: userWeight.value
                 });
 
-                
+
             }
         },
 
@@ -405,7 +371,7 @@ exports.handle = (client) => {
 
 
             // getApiCall({ patientId: client.getConversationState().patientId }, client.getConversationState().config, resultBody => {
-                
+
             //       var bmi, weightInPound = (2.20462 * parseFloat(client.getConversationState().userWeight)) * 0.45;                 
             //       var category, heightInch = 0.393701 * parseFloat(client.getConversationState().userHeight) * 0.025; 
             //       heightInch =heightInch * heightInch;
