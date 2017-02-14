@@ -79,7 +79,7 @@ exports.handle = (client) => {
         client.addTextResponse(eventData);
         client.addResponse('promt/notify_change');
        
-        client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [{"type":"reply","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}},{"type":"reply","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}},{"type":"reply","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}}]);
+        client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [{"type":"checkbox","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}},{"type":"checkbox","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}},{"type":"checkbox","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}}]);
         client.done();
 
     };
