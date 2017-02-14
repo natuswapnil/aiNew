@@ -78,13 +78,8 @@ exports.handle = (client) => {
 
         client.addTextResponse(eventData);
         client.addResponse('promt/notify_change');
-        var button1 = JSON.stringify(client.makeReplyButton('yes', null, 'main', {}));
-        button1.type = 'checkbox';
-        var button2 = JSON.stringify(client.makeReplyButton('y', null, 'main', {}));
-        button2.type = 'checkbox';
-        var button3 = JSON.stringify(client.makeReplyButton('no', null, 'main', {}));
-        button3.type = 'checkbox';
-        client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [button1,button2,button3]);
+       
+        client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [{"type":"reply","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}},{"type":"reply","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}},{"type":"reply","text":"yes","icon_url":null,"payload":{"data":{},"version":"1","stream":"main"}}]);
         client.done();
 
     };
