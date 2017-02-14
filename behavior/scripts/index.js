@@ -78,7 +78,48 @@ exports.handle = (client) => {
 
        client.addTextResponse(eventData);
         client.addResponse('promt/notify_change');
-       client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [client.makeReplyButton('no', null, 'end', {}),client.makeReplyButton('no1', null, 'end', {}),client.makeReplyButton('yes', null, 'promptMessage', {})]);
+      // client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [client.makeReplyButton('no', null, 'end', {}),client.makeReplyButton('no1', null, 'end', {}),client.makeReplyButton('yes', null, 'promptMessage', {})]);
+        
+      client.addCarouselListResponse({
+  items: [
+    {
+      media_url: 'https://c2.staticflickr.com/4/3512/5763418254_e2f42b2224_b.jpg',
+      media_type: 'image/jpeg',
+      description: 'Yosemite is a really nice place.',
+      title: 'Yosemite',
+      actions: [
+        {
+          type: 'postback',
+          text: 'Visit',
+          payload: {
+            data: {
+              action: 'visit',
+              park: 'yosemite'
+            },
+            version: '1',
+            stream: 'end',
+          },
+        },
+      ],
+    },
+    {
+      media_url: 'https://upload.wikimedia.org/wikipedia/commons/3/36/Morning_Glory_Pool.jpg',
+      media_type: 'image/jpeg',
+      description: 'Yellowstone showcases geology in its most raw form.',
+      title: 'Yellowstone',
+      actions: [
+        {
+          type: 'link',
+          text: 'View info',
+          uri: 'https://en.wikipedia.org/wiki/Yellowstone_National_Park',
+        },
+      ],
+    },
+  ],
+})
+
+
+
         client.done();
 
     };
