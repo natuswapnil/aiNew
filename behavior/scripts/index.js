@@ -78,7 +78,7 @@ exports.handle = (client) => {
 
        client.addTextResponse(eventData);
         client.addResponse('promt/notify_change');
-       client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [client.makeReplyButton('no', null, 'end', {}),client.makeReplyButton('yes', null, 'promptMessage', {})]);
+       client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [client.makeReplyButton('no', null, 'end', {}),client.makeReplyButton('no1', null, 'end', {}),client.makeReplyButton('yes', null, 'promptMessage', {})]);
         client.done();
 
     };
