@@ -1,7 +1,7 @@
 'use strict'
 
-const getApiCall = require('./lib/getApiCall');
-const postApiCall = require('./lib/postApiCall');
+//const getApiCall = require('./lib/getApiCall');
+//const postApiCall = require('./lib/postApiCall');
 
 
 exports.handle = (client) => {
@@ -78,7 +78,7 @@ exports.handle = (client) => {
 
        client.addTextResponse(eventData);
         client.addResponse('promt/notify_change');
-       // client.addResponseWithReplies('ask_userdetail/height', {foo: 'bar'}, [client.makeReplyButton('yes', null, 'promptMessage', {})]);
+       client.addResponseWithReplies('needsomeinfo/user', { name: client.getConversationState().userName }, [client.makeReplyButton('no', null, 'end', {}),client.makeReplyButton('yes', null, 'promptMessage', {})]);
         client.done();
 
     };
@@ -363,26 +363,26 @@ exports.handle = (client) => {
             });
 
 
-            getApiCall({ patientId: client.getConversationState().patientId }, client.getConversationState().config, resultBody => {
+            // getApiCall({ patientId: client.getConversationState().patientId }, client.getConversationState().config, resultBody => {
                 
-                  var bmi, weightInPound = (2.20462 * parseFloat(client.getConversationState().userWeight)) * 0.45;                 
-                  var category, heightInch = 0.393701 * parseFloat(client.getConversationState().userHeight) * 0.025; 
-                  heightInch =heightInch * heightInch;
-                  bmi = weightInPound/heightInch;
-                  if(bmi  <= 18.5){
-                     category = 'Underweight';
-                  } else if(bmi  > 18.5 && bmi <= 24.9){
-                     category = 'Normal weigh';
-                  } else if(bmi  >= 25 && bmi <= 29.9){
-                     category = 'Overweight';
-                  } else if(bmi  >= 30){
-                     category = 'Obesity';
-                  }
-                client.addTextResponse('BMI: ' + JSON.stringify(bmi) + '  BMI Categories: ' + category);
-                client.done()
+            //       var bmi, weightInPound = (2.20462 * parseFloat(client.getConversationState().userWeight)) * 0.45;                 
+            //       var category, heightInch = 0.393701 * parseFloat(client.getConversationState().userHeight) * 0.025; 
+            //       heightInch =heightInch * heightInch;
+            //       bmi = weightInPound/heightInch;
+            //       if(bmi  <= 18.5){
+            //          category = 'Underweight';
+            //       } else if(bmi  > 18.5 && bmi <= 24.9){
+            //          category = 'Normal weigh';
+            //       } else if(bmi  >= 25 && bmi <= 29.9){
+            //          category = 'Overweight';
+            //       } else if(bmi  >= 30){
+            //          category = 'Obesity';
+            //       }
+            //     client.addTextResponse('BMI: ' + JSON.stringify(bmi) + '  BMI Categories: ' + category);
+            //     client.done()
 
-                callback()
-            })
+            //     callback()
+            // })
 
 
         }
