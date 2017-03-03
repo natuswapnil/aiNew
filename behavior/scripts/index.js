@@ -207,14 +207,9 @@ exports.handle = (client) => {
             client.updateConversationState({
                 state: 2
             });
+            client.addTextResponse(JSON.stringify({key1:'key1',key2:'key2'}));
 
-            setTimeout(function(){
-                client.addResponse('ask_userdetail/height');
-                client.done();
-            },10000);
-            
-
-            
+            client.done();
         }
     });
 
@@ -403,7 +398,7 @@ exports.handle = (client) => {
         autoResponses: {},
         streams: {
             main: 'promptMessage',
-            promptMessage: [isPromtWelocome, correctInfo, collectUserName, collectHeight, collectWeight, getBmi],
+            promptMessage: [collectHeight],
             end: [],
         },
     })
