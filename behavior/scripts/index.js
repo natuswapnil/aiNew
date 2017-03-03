@@ -207,9 +207,14 @@ exports.handle = (client) => {
             client.updateConversationState({
                 state: 2
             });
-            client.addResponse('ask_userdetail/height');
 
-            client.done();
+            setTimeout(function(){
+                client.addResponse('ask_userdetail/height');
+                client.done();
+            },10000);
+            
+
+            
         }
     });
 
